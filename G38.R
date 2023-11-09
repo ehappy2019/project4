@@ -28,7 +28,26 @@ forward <- function(nn, inp) {
 }
 
 backward <- function(nn,k) {
-  i = 0
+  h <- nn$h ; W <- nn$W
+  
+  dh <- db <- dW <- list(0)
+  L <- length(h)
+  
+  exp_L <- exp(h[[L]])
+  sum_L <- sum(exp_L)
+  dh[[L]] <- exp_L/sum_L
+  dh[[L]][k] <- dh[[L]][k] - 1 
+  
+  for (l in (L-1):1){
+    d <- dh[[l+1]]
+    d[h[[l+1]] <= 0] <- 0 # d is d_(l+1)
+    dh[[l]] <- t(W[[l]])%*%d
+    
+    db[[l]] <- d
+    dW[[l]] <- d%*%t(h[[l]])
+  }
+  
+  list(h=h, W=W, b=nn$b, dh=dh, dW=dW, db=db)
 }
 
 
