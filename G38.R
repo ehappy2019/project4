@@ -50,6 +50,27 @@ backward <- function(nn,k) {
   list(h=h, W=W, b=nn$b, dh=dh, dW=dW, db=db)
 }
 
+train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
+  n <- nrow(inp)
+  indices <- sample(1:n, mb, replace=FALSE)
+  for (i in indices){
+    x <- inp[i,]
+    for (t in 1:nstep){
+      nn <- forward(nn,x)
+      nn <- backward(nn,k[i])
+      W <- nn$W ; b <- nn$b ; dW <- nn$dW ; db <- nn$db
+      for (l in 1:length(nn$h)){
+        W[[l]] <- W[[l]] - eta*dW[[l]]
+        b[[l]] <- b[[l]] - eta*db[[l]]
+      }
+      nn$W <- W ; nn$b <- b
+    }
+  }
+}
+
 
 d <- c(4,8,7,3)
-nn = forward(netup(d), c(1, 2, 3, 4))
+nn = backward(forward(netup(d), c(1, 2, 3, 4)))
+
+
+
