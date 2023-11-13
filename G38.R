@@ -28,7 +28,7 @@ netup <- function(d) {
 }
 
 
-# FUNCTION INPUT: nn, a network list as returned by nn
+# FUNCTION INPUT: nn, a network list as returned by 'netup'
 #                 inp, a vector of input values for the first layer
 # FUNCTION OUTPUT: a named list nn representing the network, with updated values
 #                  for the nodes calculated from 'inp' 
@@ -60,7 +60,7 @@ forward <- function(nn, inp) {
 }
 
 
-# FUNCTION INPUT: nn, a network list as returned by nn
+# FUNCTION INPUT: nn, a network list as returned by forward
 #                 k, an integer representing the output class for nn
 # FUNCTION OUTPUT: a list representing the updated network, containing:
 #                   - h, W, b as before outputted from function netup
@@ -162,7 +162,6 @@ rownames(test_iris)<- NULL ; colnames(test_iris)<- NULL
 # create vector k
 # anya: i have put the indexing here on the first line as using the second line gave me some NAs in k? 
 training_k <- match(iris$Species, c('setosa', 'versicolor', 'virginica'))[training_indices]
-# k <- k[training_indices]
 test_k <- match(iris$Species, c('setosa', 'versicolor', 'virginica'))[test_indices]
 
 # tests
