@@ -50,6 +50,10 @@ forward <- function(nn, inp) {
     # if (node > 0){
     #   h[[l+1]] <- node
     # } else { h[[l+1]] <- 0}
+    
+    ## alice : h[[l+1]] is actually the vector with all the nodes in layer l+1
+    # in the previous version of the code we had it in a loop but I think doing 
+    # it with vector operations like this is faster?
   }
   
   list(h=h, W=W, b=b)
@@ -121,7 +125,9 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
       W <- nn$W ; b <- nn$b ; dW <- nn$dW ; db <- nn$db
       
       # update parameter values for this timestep 
-      # anya: why do we have length(h-1) here?
+      # anya: why do we have length(h-1) here? 
+      # alice: because there are only length(h)-1 matrices/vectors W and b
+      # because they are 'between' each layer kinnd of so there's one less
       for (l in 1:(length(nn$h)-1)){
         W[[l]] <- W[[l]] - eta*dW[[l]]
         b[[l]] <- b[[l]] - eta*db[[l]]
@@ -145,23 +151,24 @@ iris_rows <- 1:nrow(iris)
 test_indices <- iris_rows[iris_rows%%5 == 0] # multiples of 5
 training_indices <- iris_rows[!(iris_rows%%5 == 0)] # other indices
 
-test_iris <- iris[test_indices,]             # rows of iris dataset to test with 
+test_iris <- as.matrix(iris[test_indices,-5]) # rows of iris dataset to test with 
 training_iris <- as.matrix(iris[training_indices,-5])          # " to train with
 
 # removing the row and column names from the dataset so we've just got the 
 # numerical data to work with
-row.names(training_iris)<- NULL ; colnames(training_iris)<- NULL
+rownames(training_iris)<- NULL ; colnames(training_iris)<- NULL
+rownames(test_iris)<- NULL ; colnames(test_iris)<- NULL
 
 # create vector k
 # anya: i have put the indexing here on the first line as using the second line gave me some NAs in k? 
-k <- match(iris$Species, c('setosa', 'versicolor', 'virginica'))[training_indices]
+training_k <- match(iris$Species, c('setosa', 'versicolor', 'virginica'))[training_indices]
 # k <- k[training_indices]
-
+test_k <- match(iris$Species, c('setosa', 'versicolor', 'virginica'))[test_indices]
 
 # tests
 d <- c(4,8,7,3) # set network architecture
-nn <- netup(d)  # initialise weights and biases
-test <- train(nn, training_iris, k) # train the network
+nn <- netup(d)  # initialize weights and biases
+trained_nn <- train(nn, training_iris, training_k) # train the network
 
 
 # ---------------------------------------------------------------------------
@@ -178,7 +185,27 @@ test <- train(nn, training_iris, k) # train the network
 #        test_k = k vector containing classes corresponding to the testset 
 
 test <- function(nn, testset, test_k){
+  n <- nrow(testset)
+  correct <- 0
+  for (i in 1:n){
+    inp <- testset[i,]
+    k <- test_k[i]
+    result <- forward(nn, inp)
+    h <- result$h
+    L <- length(h)
+    predicted_class <- which.max(h[[L]])
+    if (predicted_class == k){
+      correct <- correct + 1
+    }
+  }
+  missclassification <- 1 - correct/n
   
+  missclassification
 }
 
+# pre training
+test(nn, test_iris, test_k)
+
+# post training
+test(trained_nn, test_iris, test_k)
 
