@@ -44,16 +44,6 @@ forward <- function(nn, inp) {
   for (l in 1:(length(h)-1)){
     h[[l+1]] <- W[[l]] %*% h[[l]] + b[[l]]
     h[[l+1]][h[[l+1]] < 0] <- 0 # elements that are negative are replaced by 0
-    
-    # perhaps more efficient way of doing the same thing? not sure
-    # node <- W[[l]] %*% h[[l]] + b[[l]]
-    # if (node > 0){
-    #   h[[l+1]] <- node
-    # } else { h[[l+1]] <- 0}
-    
-    ## alice : h[[l+1]] is actually the vector with all the nodes in layer l+1
-    # in the previous version of the code we had it in a loop but I think doing 
-    # it with vector operations like this is faster?
   }
   
   list(h=h, W=W, b=b)
@@ -114,20 +104,31 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
   
   # sampling mb random rows (input vectors) from the inp matrix
   n <- nrow(inp)
-  indices <- sample(1:n, mb, replace=FALSE)
+  
+  #loss_vec <- rep(0, nstep*mb)
+  
   
   # for each input row, propagate through forwards and backwards 'nstep' times
-  for (i in indices){
-    x <- inp[i,]
-    for (t in 1:nstep){
+  
+  for (t in 1:nstep){
+    
+    indices <- sample(1:n, mb, replace=FALSE)
+    
+    for (i in indices){
+      x <- inp[i,]
+      #L <- length(nn$h)
+      #exp_L <- exp(nn$h[[L]])
+      #sum_L <- sum(exp_L)
+      #predicted <- exp_L/sum_L
+      #log_pk <- log(predicted)
+      #loss <- -sum(log_pk/n)
+      #loss_vec[t] <- loss
+      
       nn <- forward(nn,x)
       nn <- backward(nn,k[i])
       W <- nn$W ; b <- nn$b ; dW <- nn$dW ; db <- nn$db
       
       # update parameter values for this timestep 
-      # anya: why do we have length(h-1) here? 
-      # alice: because there are only length(h)-1 matrices/vectors W and b
-      # because they are 'between' each layer kinnd of so there's one less
       for (l in 1:(length(nn$h)-1)){
         W[[l]] <- W[[l]] - eta*dW[[l]]
         b[[l]] <- b[[l]] - eta*db[[l]]
@@ -136,6 +137,7 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
     }
   }
   nn
+ # plot(1:10000, loss_vec)
 }
 
 
@@ -160,7 +162,6 @@ rownames(training_iris)<- NULL ; colnames(training_iris)<- NULL
 rownames(test_iris)<- NULL ; colnames(test_iris)<- NULL
 
 # create vector k
-# anya: i have put the indexing here on the first line as using the second line gave me some NAs in k? 
 training_k <- match(iris$Species, c('setosa', 'versicolor', 'virginica'))[training_indices]
 test_k <- match(iris$Species, c('setosa', 'versicolor', 'virginica'))[test_indices]
 
@@ -207,4 +208,31 @@ test(nn, test_iris, test_k)
 
 # post training
 test(trained_nn, test_iris, test_k)
+
+forward(trained_nn, test_iris[20,])
+test_k[20]
+
+
+
+##############
+# finite differencing testing
+input <- training_iris[1,]
+eps <- 10^-7
+nn_eps <- nn
+nn_eps$W[[1]] <- nn_eps$W[[1]] + eps
+eps_result <- forward(nn_eps, input)
+dW_backwards <- backward(nn, training_k[1])$dW[[1]]
+
+loss <- function(nn,k){
+  L <- length(nn$h)
+  exp_L <- exp(nn$h[[L]])
+  sum_L <- sum(exp_L)
+  predicted <- exp_L/sum_L
+  loss <- -log(predicted[k])
+  loss
+}
+
+dW_eps <- (loss(eps_result, training_k[1])-loss(nn, training_k[1]))/eps
+
+
 
