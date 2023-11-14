@@ -1,3 +1,13 @@
+# LOSS FUNCTION MIGHT NEED SOME EDITING
+loss <- function(h,k){
+  L <- length(h)
+  exp_L <- exp(h[[L]])
+  sum_L <- sum(exp_L)
+  predicted <- exp_L/sum_L
+  loss <- -log(predicted[k])
+  loss
+}
+
 
 # FUNCTION INPUT: d, a vector giving the number of nodes in each layer of the 
 #                 network
@@ -105,7 +115,7 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
   # sampling mb random rows (input vectors) from the inp matrix
   n <- nrow(inp)
   
-  #loss_vec <- rep(0, nstep*mb)
+  loss_vec <- rep(0, nstep*mb)
   
   
   # for each input row, propagate through forwards and backwards 'nstep' times
@@ -113,17 +123,10 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
   for (t in 1:nstep){
     
     indices <- sample(1:n, mb, replace=FALSE)
-    
+    loss <- 0
+      
     for (i in indices){
       x <- inp[i,]
-      #L <- length(nn$h)
-      #exp_L <- exp(nn$h[[L]])
-      #sum_L <- sum(exp_L)
-      #predicted <- exp_L/sum_L
-      #log_pk <- log(predicted)
-      #loss <- -sum(log_pk/n)
-      #loss_vec[t] <- loss
-      
       nn <- forward(nn,x)
       nn <- backward(nn,k[i])
       W <- nn$W ; b <- nn$b ; dW <- nn$dW ; db <- nn$db
@@ -134,10 +137,14 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
         b[[l]] <- b[[l]] - eta*db[[l]]
       }
       nn$W <- W ; nn$b <- b
+      
+      loss <- loss - loss(nn$h, k[i])/mb
     }
+    
+    loss_vec[t] <- loss
   }
   nn
- # plot(1:10000, loss_vec)
+  plot(1:10000, loss_vec)
 }
 
 
@@ -217,22 +224,17 @@ test_k[20]
 ##############
 # finite differencing testing
 input <- training_iris[1,]
+k <- training_k[1]
 eps <- 10^-7
+pre_eps <- forward(nn, input)
 nn_eps <- nn
-nn_eps$W[[1]] <- nn_eps$W[[1]] + eps
+nn_eps$W[[1]][1, 1] <- nn_eps$W[[1]][1, 1] + eps
 eps_result <- forward(nn_eps, input)
-dW_backwards <- backward(nn, training_k[1])$dW[[1]]
+dW_backwards <- backward(forward(nn, input), k)$dW[[1]][1,1]
 
-loss <- function(nn,k){
-  L <- length(nn$h)
-  exp_L <- exp(nn$h[[L]])
-  sum_L <- sum(exp_L)
-  predicted <- exp_L/sum_L
-  loss <- -log(predicted[k])
-  loss
-}
 
-dW_eps <- (loss(eps_result, training_k[1])-loss(nn, training_k[1]))/eps
+
+dW_eps <- (loss(eps_result$h, k)-loss(pre_eps$h, k))/eps
 
 
 
