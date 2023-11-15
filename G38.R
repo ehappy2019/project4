@@ -144,31 +144,37 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
   nn  # return the trained network
 }
 
-# FUNCTION INPUT: nn = the updated neural network,
-#                 k = the class of the data point
-# FUNCTION OUTPUT: loss = the negative log likelihood of the predicted class
-# DESCRIPTION: This function calculates the negative log likelihood using the 
-#              probability that the predicted class is k. 
+# FUNCTION INPUT: nn = the neural network for which we want to calculate the loss,
+#                 input = data used to obtain an output layer from which to 
+#                         calculate loss,
+#                 k = the class of the data
+# FUNCTION OUTPUT: the total loss for given 'nn' and 'input' data
+# DESCRIPTION: This function calculates the loss using the negative loglikelihood 
 loss <- function(nn, input, k){
   
   n <- nrow(input) # number of input data
   L <- length(nn$h) # the total number of layers in the network
-  loss <- rep(0, n)
+  loss <- rep(0, n) # initialize vector which will hold loss for each row of 'input'
   
+  # for each input data
   for (i in 1:n){
     
+    # run the data through forward to obtain corresponding output layer
     inp <- input[i,]
     ki <- k[i]
     h <- forward(nn, inp)$h 
     
+    # calculate probability that the output variable is in class k : 'predicted'
     exp_L <- exp(h[[L]])    
     sum_L <- sum(exp_L)
+    predicted <- exp_L/sum_L    
     
-    predicted <- exp_L/sum_L    # probability of the output class being k
-    loss[i] <- -log(predicted[ki])  # negative log likelihood
+    # the loss for this data input is the negative log of predicted[ki] where ki 
+    # is the true class
+    loss[i] <- -log(predicted[ki])  
   }
-  
-  sum(loss/n)               # return the sum of negative log likelihood over n
+  # the total loss is the sum of all the losses over the number of data
+  sum(loss/n)    
 }
 
 
@@ -179,24 +185,25 @@ loss <- function(nn, input, k){
 # load the 'iris' data set
 data(iris)
 
+# cleaning up the data to keep only numerical values 
+data_iris <- as.matrix(iris[,-5])
+rownames(data_iris)<- NULL ; colnames(data_iris)<- NULL
+
 # separate it into training and test data
 iris_rows <- 1:nrow(iris)
 test_indices <- iris_rows[iris_rows%%5 == 0] # multiples of 5
 training_indices <- iris_rows[!(iris_rows%%5 == 0)] # other indices
-
-# cleaning up the data to keep only numerical values 
-data_iris <- as.matrix(iris[,-5])
-rownames(data_iris)<- NULL ; colnames(data_iris)<- NULL
 
 test_iris <- data_iris[test_indices,] # rows of iris dataset to test with 
 training_iris <- data_iris[training_indices,]          # " to train with
 
 # create vector k
 k <- match(iris$Species, c('setosa', 'versicolor', 'virginica'))
-training_k <- k[training_indices]
 test_k <- k[test_indices]
+training_k <- k[training_indices]
 
-# set up and train a network on training data
+
+# Set up and train a network on training data
 
 # We set the seed to obtain a good result:
 set.seed(3)
@@ -246,27 +253,50 @@ predict_test <- function(nn, testset, test_k){
 ### 1 : function to classify based on nn
 ### 2 : compare to actual k
 
+# FUNCTION INPUT: nn = neural network,
+#                 input = data to predict a class for using the network, each 
+#                 row is a data input
+# FUNCTION OUTPUT: predicted_k = vector of predicted class for each row of input
+# DESCRIPTION: This function uses the neural network 'nn' and runs each row of 
+#              'input' through the 'forward' function with network 'nn' to 
+#              predict a class for the data in that row. It then returns the 
+#              predicted classes in a vector.
 classify <- function(nn, input){
   
   n <- nrow(input) # number of input data
   L <- length(nn$h) # total number of layers in the network
-  predicted_k <- rep(0, n) # initilaise vector to store predicted class of data
+  predicted_k <- rep(0, n) # initialize vector to store predicted class of data
   
+  # for each data set, run it through forward and get predicted class based on 
+  # which node of the output layer has the highest value
   for (i in 1:n){
     inp <- input[i,]
     h <- forward(nn, inp)$h
     predicted_k[i] <- which.max(h[[L]])
   }
   
+  # return the predicted classes
   predicted_k
 }
 
-missclassified <- function(predicted_k, actual_k){
+########## NOTE FOR FOLLOWING FUNCTION
+# lowkey this doesnt even have to be a function idk if it looks better as a 
+# funciton or just direct calculation
+
+
+
+# FUNCTION INPUT: predicted_k = vector of classes predicted using a neural network,
+#                 actual_k = true classes of the input data used to obtain 'predicted_k'
+# FUNCTION OUTPUT: misclassification rate (a number between 0 and 1)
+# DESCRIPTION: This function compares classes given in 'predicted_k' and 'actual_k' 
+#              to calculate the misclassification rate when using the network 'nn' 
+#              which was used to obtain the predicted classes 'predicted_k' 
+misclassified <- function(predicted_k, actual_k){
   length(which(predicted_k != actual_k))/length(actual_k)
 }
 
-pre_alt_classify <- missclassified(classify(nn, test_iris), test_k)
-post_alt_classify <- missclassified(classify(trained_nn, test_iris), test_k)
+pre_alt_classify <- misclassified(classify(nn, test_iris), test_k)
+post_alt_classify <- misclassified(classify(trained_nn, test_iris), test_k)
 
 
 
