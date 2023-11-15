@@ -239,6 +239,37 @@ predict_test <- function(nn, testset, test_k){
   wrong/n
 }
 
+############# ALTERNATIVE
+### 1 : function to classify based on nn
+### 2 : compare to actual k
+
+classify <- function(nn, input){
+  
+  n <- nrow(input)
+  predicted_k <- rep(0, n)
+  
+  for (i in 1:n){
+    inp <- input[i,]
+    h <- forward(nn, inp)$h
+    L <- length(h)
+    predicted_k[i] <- which.max(h[[L]])
+  }
+  
+  predicted_k
+}
+
+missclassified <- function(predicted_k, actual_k){
+  length(which(predicted_k != actual_k))/length(actual_k)
+}
+
+pre_alt_classify <- missclassified(classify(nn, test_iris), test_k)
+post_alt_classify <- missclassified(classify(trained_nn, test_iris), test_k)
+
+
+
+###########
+
+
 # We can now compare our results pre and post training:
 
 # pre training
