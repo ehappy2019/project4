@@ -146,7 +146,7 @@ train <- function(nn, inp, k, eta=0.01, mb=1, nstep=10000){
       }
       nn$W <- W ; nn$b <- b
       
-      # calculate the negative for this class
+      # calculate the negative log likelihood for this class
       loss_i[i] <- loss(nn, k[i])
     }
     # loss for each timestep is the sum of the log
@@ -254,14 +254,17 @@ predict_test(trained_nn, test_iris, test_k)
 ##############
 # finite differencing testing
 input <- training_iris[1,]
+k <- training_k[1]
 eps <- 10^-7
+pre_eps <- forward(nn, input)
 nn_eps <- nn
-nn_eps$W[[1]] <- nn_eps$W[[1]] + eps
+nn_eps$W[[1]][1, 1] <- nn_eps$W[[1]][1, 1] + eps
 eps_result <- forward(nn_eps, input)
-dW_backwards <- backward(nn, training_k[1])$dW[[1]]
+dW_backwards <- backward(forward(nn, input), k)$dW[[1]][1,1]
 
 
-dW_eps <- (loss(eps_result, training_k[1])-loss(nn, training_k[1]))/eps
+
+dW_eps <- (loss(eps_result$h, k)-loss(pre_eps$h, k))/eps
 
 
 
