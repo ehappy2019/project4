@@ -1,4 +1,5 @@
 # Anya Gray s1934439, Emily Happy s2553022, Alice Lasocki s2570813
+# https://github.com/ehappy2019/project4
 
 
 # CONTRIBUTIONS:
@@ -12,32 +13,46 @@
 
 # This program creates a neural network from scratch. It is trained using the 
 # ReLU transform as the activation function, and the negative log-likelihood of 
-# the output probabilities as the loss function. It is used to classify data 
-# from the 'iris' dataset into species categories.
+# the output probabilities as the loss function. In this case, it is used to 
+# classify data from the 'iris' dataset into species categories.
 
-# The network has 4 layers with the numbers of neurons as 4-8-7-3. The input 
-# layer has 4 neurons corresponding to pieces of information about a single 
-# datum, and the output layer has 3 neurons, corresponding to the 3 possible 
-# species that the input datum may correspond to. Each layer 
-# has free parameters known as a weight (which is matrix) and a bias (which is a 
-# vector). These parameters are drawn from stochastic normal distributions at 
-# initialisation of the network; the function 'netup' sets up the network. To
-# propagate a signal through the network, a linear transformation is performed 
-# using the values of each neuron in layer l with the relevant weight and 
-# biases. The ReLU activation is then calculated, which determines the values of 
-# the neurons in the following layer l+1. This works recursively until we reach 
-# the final layer, where the values of the 3 neurons indicate probabilities that
-# the input datum is each of the 3 possible species. The function 'forward' does
-# this, while the function 'backward' exercises back-propagation, which is the 
-# process that optimises the network's predictions by fine-tuning the weights 
-# and biases in the network by minimising the loss function. We train the 
-# network in the function 'train' by doing this forward and backward propagation 
-# 10000 times for 10 pieces of test data.
+# The iris network has 4 layers with the numbers of neurons as 4-8-7-3. The 
+# input layer has 4 neurons corresponding to pieces of information about a 
+# single datum, and the output layer has 3 neurons, corresponding to the 3 
+# possible  species that the input datum may correspond to. 
+
+# Each layer has free parameters known as a weight (which is matrix) and a bias 
+# (which is a vector). These parameters are drawn from stochastic normal 
+# distributions at initialization of the network; the function 'netup' sets up 
+# the network by creating the neuron layers, weight matrices and bias vectors 
+# with the right dimensions. 
+# To propagate a signal through the network, a linear transformation 
+# is performed using the values of each neuron in layer l with the relevant 
+# weight and biases. The ReLU activation is then calculated, which determines 
+# the values of the neurons in the following layer l+1: 
+# h^{l+1} = max(0, W^l * h^l + b^l). 
+# This works recursively until we reach the final layer, where the values of the 
+# 3 neurons indicate probabilities that the input datum is each of the 3 
+# possible species. 
+# The function 'forward' does this, while the function 'backward' exercises 
+# back-propagation, which is the process that optimises the network's 
+# predictions by fine-tuning the weights and biases in the network using 
+# derivatives of the loss,in order to minimise the loss function. 
+# We train the network in the function 'train' by doing this forward and 
+# backward propagation nstep=10000 times for mb=10 pieces of test data.
+# (nstep and mb are given default values 10000 and 10)
 
 # The function 'loss' calculates the loss function for a given network (either
 # trained or not trained), the function 'classify' returns a list of species
 # classifications for a given test set of data, and 'misclassification' measures
 # the proportion of misclassifications for a given test set.
+# We will use these functions to compare the results we get when testing our 
+# trained neural network and an untrained one using 'iris' data.
+
+
+
+# ---------------------------------------------------------------------------
+###FUNCTIONS
 
 
 
@@ -235,9 +250,11 @@ loss <- function(nn, input, k){
 }
 
 
+
 # ---------------------------------------------------------------------------
 ### Here we train a 4-8-7-3 network to classify species of irises to species 
 ### based on the 4 characteristics given in the iris data set.
+
 
 # load the 'iris' data set
 data(iris)
@@ -322,20 +339,17 @@ misclassified <- function(predicted_k, actual_k){
 }
 
 
+# ---------------------------------------------------------------------------
+###RESULTS
 
-# misclassification rates of the pre-trained and post-trained networks
+# pre training results : misclassification rate and loss
 pre_classify <- misclassified(classify(nn, test_iris), test_k)
-post_classify <- misclassified(classify(trained_nn, test_iris), test_k)
-
-
-# pre training results
-pre_classify <- predict_test(nn, test_iris, test_k)
 pre_loss <- loss(nn, test_iris, test_k)
 cat('Before training the network, there was a', pre_classify,
     'misclassification rate and a loss of', pre_loss)
 
-# post training results
-post_classify <- predict_test(trained_nn, test_iris, test_k)
+# post training results : misclassification rate and loss
+post_classify <- misclassified(classify(trained_nn, test_iris), test_k)
 post_loss <- loss(trained_nn, test_iris, test_k)
 cat('\n\nAfter training the network, there is now a misclassification rate of',
     post_classify, 'and a loss of', post_loss)
