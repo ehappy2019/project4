@@ -35,12 +35,15 @@
 # 3 neurons indicate probabilities that the input datum is each of the 3 
 # possible species. 
 # The function 'forward' does this, while the function 'backward' exercises 
-# back-propagation, which is the process that optimises the network's 
-# predictions by fine-tuning the weights and biases in the network using 
-# derivatives of the loss,in order to minimise the loss function. 
+# back-propagation to calculate the derivatives of the loss w.r.t the layers of 
+# neurons, the weights and the biases. 
 # We train the network in the function 'train' by doing this forward and 
 # backward propagation nstep=10000 times for mb=10 pieces of test data.
-# (nstep and mb are given default values 10000 and 10)
+# (nstep and mb are given default values 10000 and 10) . This is the process 
+# that optimises the network's predictions by fine-tuning the weights and biases 
+# in the network using the derivatives of the loss,in order to minimise the loss 
+# function. 
+
 
 # The function 'loss' calculates the loss function for a given network (either
 # trained or not trained), the function 'classify' returns a list of species
