@@ -112,9 +112,8 @@ backward <- function(nn, k) {
 # FUNCTION OUTPUT: nn = a list representing the trained neural network
 # DESCRIPTION: This function takes a random sample of data, runs it through the
 #              network by calling 'forward', 'backward', then updates the weight 
-#              matrices and bias vectors for each datum in the sample. Then 
-#              the loss is calculated for the step and the process is repeated
-#              nstep times. 
+#              matrices and bias vectors for each datum in the sample. The 
+#              process is repeated nstep times. 
 train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
   
   n <- nrow(inp)
@@ -128,7 +127,7 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
     for (i in indices){
       x <- inp[i,]     # input vector for forward pass
       
-      # for each input row, propagate through forwards and backwards 'nstep' times
+      # for each input row, propagate through forwards and backwards 
       nn <- forward(nn,x)
       nn <- backward(nn,k[i])
       W <- nn$W ; b <- nn$b ; dW <- nn$dW ; db <- nn$db
@@ -146,10 +145,10 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
 
 # FUNCTION INPUT: nn = the neural network for which we want to calculate the loss,
 #                 input = data used to obtain an output layer from which to 
-#                         calculate loss,
-#                 k = the class of the data
+#                         calculate the loss,
+#                 k = the class of the data in 'input'
 # FUNCTION OUTPUT: the total loss for given 'nn' and 'input' data
-# DESCRIPTION: This function calculates the loss using the negative loglikelihood 
+# DESCRIPTION: This function calculates the loss using as a negative log-likelihood 
 loss <- function(nn, input, k){
   
   n <- nrow(input) # number of input data
@@ -203,11 +202,10 @@ test_k <- k[test_indices]
 training_k <- k[training_indices]
 
 
-# Set up and train a network on training data
+# Set up and train a network using training data
 
 # We set the seed to obtain a good result:
 set.seed(3)
-
 
 d <- c(4,8,7,3) # set network architecture
 nn <- netup(d)  # initialize weights and biases
@@ -215,9 +213,13 @@ trained_nn <- train(nn, training_iris, training_k) # train the network
 
 
 # ---------------------------------------------------------------------------
-### "After training write code to classify the test data to species according to
-### the class predicted as most probable for each iris in the test set, and 
-### compute the misclassification rate"
+### Now that we have trained the network, we will classify the test data to 
+### species according to the class predicted as most probable for each iris in 
+### the test set when using the trained network, and compute the 
+### misclassification rate.
+
+
+#### pick one of the two alternatives
 
 # code to classify the test data
 
