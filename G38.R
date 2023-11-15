@@ -1,20 +1,60 @@
 # Anya Gray s1934439, Emily Happy s2553022, Alice Lasocki s2570813
-# Classification neural network, trained using stochastic gradient descent
+
+
+# CONTRIBUTIONS:
+# We worked collaboratively as a group on this assignment. Emily created the 
+# forward function, and all 3 of us collaborated creating the backward function.
+# The code for training and testing the data was written mainly by Alice and 
+# Emily. All 3 of us debugged and fine-tuned the code, and Anya finalised the 
+# comments and presentation. Proportions were more or less equal.
 
 
 
-# FUNCTION INPUT: d, a vector giving the number of nodes in each layer of the 
+# This program creates a neural network from scratch. It is trained using the 
+# ReLU transform as the activation function, and the negative log-likelihood of 
+# the output probabilities as the loss function. It is used to classify data 
+# from the 'iris' dataset into species categories.
+
+# The network has 4 layers with the numbers of neurons as 4-8-7-3. The input 
+# layer has 4 neurons corresponding to pieces of information about a single 
+# datum, and the output layer has 3 neurons, corresponding to the 3 possible 
+# species that the input datum may correspond to. Each layer 
+# has free parameters known as a weight (which is matrix) and a bias (which is a 
+# vector). These parameters are drawn from stochastic normal distributions at 
+# initialisation of the network; the function 'netup' sets up the network. To
+# propagate a signal through the network, a linear transformation is performed 
+# using the values of each neuron in layer l with the relevant weight and 
+# biases. The ReLU activation is then calculated, which determines the values of 
+# the neurons in the following layer l+1. This works recursively until we reach 
+# the final layer, where the values of the 3 neurons indicate probabilities that
+# the input datum is each of the 3 possible species. The function 'forward' does
+# this, while the function 'backward' exercises back-propagation, which is the 
+# process that optimises the network's predictions by fine-tuning the weights 
+# and biases in the network by minimising the loss function. We train the 
+# network in the function 'train' by doing this forward and backward propagation 
+# 10000 times for 10 pieces of test data.
+
+# The function 'loss' calculates the loss function for a given network (either
+# trained or not trained), the function 'classify' returns a list of species
+# classifications for a given test set of data, and 'misclassification' measures
+# the proportion of misclassifications for a given test set.
+
+
+
+# FUNCTION INPUT: d = vector giving the number of neurons in each layer of the 
 #                 network
-# FUNCTION OUTPUT: nn = a list representing the network, containing:
-#                   - h : a list of node vectors for each layer
-#                   - W : a list of weight matrices, initialized with U(0,0.2)
+# FUNCTION OUTPUT: nn = list representing the network, containing:
+#                   - h = list of vectors for each layer with neuron values 
+#                   - W = list of weight matrices, initialized with U(0,0.2)
 #                     random deviates
-#                   - b : a list of offset vectors, initialized with U(0,0.2)
+#                   - b = list of bias vectors, initialized with U(0,0.2)
 #                     random deviates
-# DESCRIPTION: This function sets up the network list by creating lists of nodes,
-#              weights, and offset vectors. The weight matrices and offset vectors
-#              link layer l to layer l+1
+# DESCRIPTION: This function initializes the network by creating lists of 
+#              neurons, weights, and biases. The weight matrices and bias 
+#              vectors link layer l to layer l+1.
 netup <- function(d) {
+  
+  # initialising network data
   h <- list()
   W <- list()
   b <- list()
@@ -37,46 +77,53 @@ netup <- function(d) {
 
 # FUNCTION INPUT: nn = a network list as returned by 'netup'
 #                 inp = a vector of input values for the first layer
-# FUNCTION OUTPUT: nn = a list representing the network, with updated values
-#                  for the nodes calculated from 'inp' 
+# FUNCTION OUTPUT: nn = a list representing the network, with the same elements 
+#                  as the input nn, but with updated values for every neuron in 
+#                  the network 
 # DESCRIPTION: This function takes a vector of input values and updates the rest
-#              of the nodes using the weight and bias vectors. 
+#              of the neurons using the weight and bias vectors and the ReLU
+#              activation function defined as h^{l+1} = max(0, W^l * h^l + b^l),
+#              where h^l is the vector of neuron valuesin layer l. 
 forward <- function(nn, inp) {
+  
   # for ease of notation
   h <- nn$h ; W <- nn$W ; b <- nn$b
   
   # the first layer of the network is given by the input vector 'inp'
   h[[1]] <- inp
   
-  # the other layers are calculated using the W matrices and b vectors so that
-  # h[[l+1]][j] = max(0, W[[l]][j,]%*%h[[l]] + b[[l]][j]) 
+  # propagate the input through the rest of the network with the ReLU function
   for (l in 1:(length(h)-1)){
     h[[l+1]] <- W[[l]] %*% h[[l]] + b[[l]]
     h[[l+1]][h[[l+1]] < 0] <- 0 # elements that are negative are replaced by 0
   }
   
+  # return updated network after one forward pass
   list(h=h, W=W, b=b)
 }
 
 
 # FUNCTION INPUT: nn = a network list as returned by forward
-#                 k = an integer representing the output class for a datum
+#                 k = an integer representing the output class of a datum
 # FUNCTION OUTPUT: a list representing the updated network, containing:
 #                   - h, W, b as before outputted from function netup
 #                   - dh, dW, db : derivatives of the loss function wrt the 
 #                                 nodes, weights and biases respectively.
-#                                 These have the same dimension as the network.
-# DESCRIPTION: This function calculates the updates for the parameters of nn by  
-#              computing the derivative of the loss for class k w.r.t. the last 
-#              layer of nodes, then computes the rest of the derivatives w.r.t
-#              the rest of the nodes, the weight matrices, and the bias vectors.
-#              The nn list is updated to include the derivatives to be used  
-#              when running the 'train' function. 
+#                                 These have the same dimension as the network
+#                                 architecture (same dimensions as h).
+# DESCRIPTION: This function calculates the parameter updates of nn by  
+#              computing the derivative of the loss for class k. This works 
+#              backwards by calculating the derivative of the loss  w.r.t. the 
+#              last layer of nodes, then for each layer preceding the last, the 
+#              derivative is computed by combining derivatives w.r.t the node
+#              values, the weight matrices, and the bias vectors. The nn list is 
+#              updated to include the derivatives to be used when running the 
+#              'train' function. 
 backward <- function(nn, k) {
   # for ease of notation
   h <- nn$h ; W <- nn$W
   
-  # initialize some elements
+  # initialize derivatives
   dh <- db <- dW <- list()
   
   # total number of layers in the network
@@ -92,38 +139,43 @@ backward <- function(nn, k) {
   # for layers l < L, work backwards from the last layer to the first
   for (l in (L-1):1){
     d <- dh[[l+1]] # d is d_(l+1)
-    d[h[[l+1]] <= 0] <- 0  # set d=0 where h is <=0
+    d[h[[l+1]] <= 0] <- 0  # set d = 0 where h <= 0
     dh[[l]] <- t(W[[l]])%*%d
     
     db[[l]] <- d
     dW[[l]] <- d%*%t(h[[l]])
   }
   
+  # return relevant parameters of the network and derivatives
   list(h=h, W=W, b=nn$b, dh=dh, dW=dW, db=db)
 }
 
 
-# FUNCTION INPUT: nn = the network as returned by 'netup',
-#                 inp = a matrix whose rows are different input data vectors,
-#                 k = vector whose entries correspond to the class of inp's rows,
-#                 eta = step size to take when updating parameters,
-#                 mb = number of data to randomly sample for each step,
-#                 nstep = number of training iterations,
+# FUNCTION INPUT: nn = the network as returned by 'netup'
+#                 inp = a matrix whose rows are input data vectors
+#                 k = vector whose entries correspond to the class of inp's rows
+#                 eta = step size to take when updating parameters
+#                 mb = number of test data to randomly sample for each step
+#                 nstep = number of training iterations
 # FUNCTION OUTPUT: nn = a list representing the trained neural network
-# DESCRIPTION: This function takes a random sample of data, runs it through the
-#              network by calling 'forward', 'backward', then updates the weight 
-#              matrices and bias vectors for each datum in the sample. The 
-#              process is repeated nstep times. 
+# DESCRIPTION: This function takes a random sample of data, runs each datum 
+#              through the network by calling 'forward' then 'backward'. It then 
+#              updates the weight matrices and bias vectors for each datum in 
+#              the sample, using the optimised values as returned by 'backward'. 
+#              The process is repeated nstep times, to obtain an optimised 
+#              network trained generally. 
 train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
   
-  n <- nrow(inp)
-  L <- length(nn$h)
+  n <- nrow(inp) # number of data
+  L <- length(nn$h) # number of layers in the network
   
+  # train the network for nstep iterations
   for (t in 1:nstep){
     
     # sampling mb random rows (input vectors) from the inp matrix
     indices <- sample(1:n, mb, replace=FALSE)
     
+    # optimize parameters for each of the random samples
     for (i in indices){
       x <- inp[i,]     # input vector for forward pass
       
@@ -140,20 +192,26 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
       nn$W <- W ; nn$b <- b
     }
   }
-  nn  # return the trained network
+  
+  # return the trained network
+  nn 
 }
 
-# FUNCTION INPUT: nn = the neural network for which we want to calculate the loss,
+
+# FUNCTION INPUT: nn = the neural network of which to calculate the loss,
 #                 input = data used to obtain an output layer from which to 
 #                         calculate the loss,
 #                 k = the class of the data in 'input'
 # FUNCTION OUTPUT: the total loss for given 'nn' and 'input' data
-# DESCRIPTION: This function calculates the loss using as a negative log-likelihood 
+# DESCRIPTION: This function calculates the value of the loss function for the 
+#              given network as a negative log-likelihood. It is used towards 
+#              the end of the program to compare our pre-trained and 
+#              post-trained networks.
 loss <- function(nn, input, k){
   
   n <- nrow(input) # number of input data
   L <- length(nn$h) # the total number of layers in the network
-  loss <- rep(0, n) # initialize vector which will hold loss for each row of 'input'
+  loss <- rep(0, n) # initialize vector to hold the loss for each row of 'input'
   
   # for each input data
   for (i in 1:n){
@@ -161,108 +219,77 @@ loss <- function(nn, input, k){
     # run the data through forward to obtain corresponding output layer
     inp <- input[i,]
     ki <- k[i]
-    h <- forward(nn, inp)$h 
+    output <- forward(nn, inp)$h 
     
     # calculate probability that the output variable is in class k : 'predicted'
-    exp_L <- exp(h[[L]])    
+    exp_L <- exp(output[[L]])    
     sum_L <- sum(exp_L)
     predicted <- exp_L/sum_L    
     
-    # the loss for this data input is the negative log of predicted[ki] where ki 
+    # the loss for datum i is the negative log of predicted[ki] where ki 
     # is the true class
     loss[i] <- -log(predicted[ki])  
   }
-  # the total loss is the sum of all the losses over the number of data
+  # the total loss is the mean of all the losses for each datum
   sum(loss/n)    
 }
 
 
 # ---------------------------------------------------------------------------
-### "Train a 4-8-7-3 network to classify irises to species based on the 4
-### characteristics given in the iris data set"
+### Here we train a 4-8-7-3 network to classify species of irises to species 
+### based on the 4 characteristics given in the iris data set.
 
 # load the 'iris' data set
 data(iris)
 
-# cleaning up the data to keep only numerical values 
+# clean up the data to keep only numerical values 
 data_iris <- as.matrix(iris[,-5])
 rownames(data_iris)<- NULL ; colnames(data_iris)<- NULL
 
 # separate it into training and test data
 iris_rows <- 1:nrow(iris)
-test_indices <- iris_rows[iris_rows%%5 == 0] # multiples of 5
-training_indices <- iris_rows[!(iris_rows%%5 == 0)] # other indices
+test_indices <- iris_rows[iris_rows%%5 == 0] # indices of multiples of 5
+training_indices <- iris_rows[!(iris_rows%%5 == 0)] # all other indices
 
 test_iris <- data_iris[test_indices,] # rows of iris dataset to test with 
 training_iris <- data_iris[training_indices,]          # " to train with
 
-# create vector k
+# create vector k holding the classification of each iris datum
 k <- match(iris$Species, c('setosa', 'versicolor', 'virginica'))
+
+# splitting up the classifications for testing the network and training it
 test_k <- k[test_indices]
 training_k <- k[training_indices]
 
 
-# Set up and train a network using training data
+## Set up and train a network using training data
 
-# We set the seed to obtain a good result:
+# set the seed for the stochastic variables (weights and biases) 
+# to obtain a good result:
 set.seed(3)
 
-d <- c(4,8,7,3) # set network architecture
+d <- c(4,8,7,3) # set up the network architecture
 nn <- netup(d)  # initialize weights and biases
 trained_nn <- train(nn, training_iris, training_k) # train the network
 
 
 # ---------------------------------------------------------------------------
-### Now that we have trained the network, we will classify the test data to 
-### species according to the class predicted as most probable for each iris in 
-### the test set when using the trained network, and compute the 
-### misclassification rate.
+### Now that we have trained the network, we will use it to classify the species
+### of the test data. The species predictions are taken as the highest node 
+### value in the output layer, after the test data is propagated through the 
+### trained network. We then calculate the misclassification rate of our 
+### network.
 
 
-#### pick one of the two alternatives
-
-# code to classify the test data
-
-# FUNCTION INPUT: nn = trained network,
-#                 testset = data from iris the network has not seen yet,
-#                 test_k = k vector containing classes corresponding to the testset 
-# FUNCTION OUTPUT: misclassification: the proportion of misclassified data
-# DESCRIPTION: This function runs the test data through the trained network using
-#              one forward pass and records the classification that the model 
-#              predicts. Then it compares the prediction to the true class to return 
-#              the total proportion of missclassified inputs. 
-predict_test <- function(nn, testset, test_k){
-  n <- nrow(testset)
-  wrong <- 0
-  
-  for (i in 1:n){
-    
-    inp <- testset[i,]
-    k <- test_k[i]
-    h <- forward(nn, inp)$h
-    L <- length(h)
-    predicted_class <- which.max(h[[L]])
-    
-    if (predicted_class != k){
-      wrong <- wrong + 1
-    }
-  }
-  # proportion of wrongly predicted classes
-  wrong/n
-}
-
-############# ALTERNATIVE
-### 1 : function to classify based on nn
-### 2 : compare to actual k
 
 # FUNCTION INPUT: nn = neural network,
 #                 input = data to predict a class for using the network, each 
 #                 row is a data input
 # FUNCTION OUTPUT: predicted_k = vector of predicted class for each row of input
-# DESCRIPTION: This function uses the neural network 'nn' and runs each row of 
-#              'input' through the 'forward' function with network 'nn' to 
-#              predict a class for the data in that row. It then returns the 
-#              predicted classes in a vector.
+# DESCRIPTION: This function uses the neural network 'nn' and runs each input
+#              datum through the 'forward' function with network 'nn' to 
+#              predict the class of each datum. It returns the predicted classes 
+#              of all the input data in a vector.
 classify <- function(nn, input){
   
   n <- nrow(input) # number of input data
@@ -273,49 +300,43 @@ classify <- function(nn, input){
   # which node of the output layer has the highest value
   for (i in 1:n){
     inp <- input[i,]
-    h <- forward(nn, inp)$h
-    predicted_k[i] <- which.max(h[[L]])
+    output <- forward(nn, inp)$h
+    predicted_k[i] <- which.max(output[[L]])
   }
   
-  # return the predicted classes
+  # return the list of predicted classes
   predicted_k
 }
 
-########## NOTE FOR FOLLOWING FUNCTION
-# lowkey this doesnt even have to be a function idk if it looks better as a 
-# funciton or just direct calculation
 
-
-
-# FUNCTION INPUT: predicted_k = vector of classes predicted using a neural network,
-#                 actual_k = true classes of the input data used to obtain 'predicted_k'
-# FUNCTION OUTPUT: misclassification rate (a number between 0 and 1)
-# DESCRIPTION: This function compares classes given in 'predicted_k' and 'actual_k' 
-#              to calculate the misclassification rate when using the network 'nn' 
-#              which was used to obtain the predicted classes 'predicted_k' 
+# FUNCTION INPUT: predicted_k = vector of classes predicted by a neural network
+#                 actual_k = true classes of the input data used to obtain 
+#                 'predicted_k'
+# FUNCTION OUTPUT: the misclassification rate (a number between 0 and 1)
+# DESCRIPTION: This function calculates the misclassification rate of our 
+#              trained neural network. It compares the classes given in 
+#              'predicted_k' and 'actual_k' and returns the propoortion of
+#              wrongly predicted classes.
 misclassified <- function(predicted_k, actual_k){
   length(which(predicted_k != actual_k))/length(actual_k)
 }
 
-pre_alt_classify <- misclassified(classify(nn, test_iris), test_k)
-post_alt_classify <- misclassified(classify(trained_nn, test_iris), test_k)
 
 
+# misclassification rates of the pre-trained and post-trained networks
+pre_classify <- misclassified(classify(nn, test_iris), test_k)
+post_classify <- misclassified(classify(trained_nn, test_iris), test_k)
 
-###########
 
-
-# We can now compare our results pre and post training:
-
-# pre training
+# pre training results
 pre_classify <- predict_test(nn, test_iris, test_k)
 pre_loss <- loss(nn, test_iris, test_k)
-cat('Before training the network, there was a', pre_classify, 
-    'missclassification rate and a loss of', pre_loss)
+cat('Before training the network, there was a', pre_classify,
+    'misclassification rate and a loss of', pre_loss)
 
-# post training
+# post training results
 post_classify <- predict_test(trained_nn, test_iris, test_k)
 post_loss <- loss(trained_nn, test_iris, test_k)
-cat('After training the network, there is now a missclassification rate of', 
+cat('\n\nAfter training the network, there is now a misclassification rate of',
     post_classify, 'and a loss of', post_loss)
 
