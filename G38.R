@@ -165,7 +165,7 @@ loss <- function(nn, input, k){
     loss[i] <- -log(predicted[ki])  # negative log likelihood
   }
   
-  sum(loss/n)                   # return the sum negative log likelihood over n
+  sum(loss/n)               # return the sum of negative log likelihood over n
 }
 
 
@@ -239,11 +239,17 @@ predict_test <- function(nn, testset, test_k){
   wrong/n
 }
 
+# We can now compare our results pre and post training:
+
 # pre training
-predict_test(nn, test_iris, test_k)
-loss(nn, test_iris, test_k)
+pre_classify <- predict_test(nn, test_iris, test_k)
+pre_loss <- loss(nn, test_iris, test_k)
+cat('Before training the network, there was a', pre_classify, 
+    'missclassification rate and a loss of', pre_loss)
 
 # post training
-predict_test(trained_nn, test_iris, test_k)
-loss(trained_nn, test_iris, test_k)
+post_classify <- predict_test(trained_nn, test_iris, test_k)
+post_loss <- loss(trained_nn, test_iris, test_k)
+cat('After training the network, there is now a missclassification rate of', 
+    post_classify, 'and a loss of', post_loss)
 
