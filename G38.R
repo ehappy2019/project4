@@ -118,6 +118,7 @@ backward <- function(nn, k) {
 train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
   
   n <- nrow(inp)
+  L <- length(nn$h)
   
   for (t in 1:nstep){
     
@@ -133,7 +134,7 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
       W <- nn$W ; b <- nn$b ; dW <- nn$dW ; db <- nn$db
       
       # update parameter values for this optimization step 
-      for (l in 1:(length(nn$h)-1)){
+      for (l in 1:(L-1)){
         W[[l]] <- W[[l]] - eta*dW[[l]]
         b[[l]] <- b[[l]] - eta*db[[l]]
       }
@@ -149,14 +150,16 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
 # DESCRIPTION: This function calculates the negative log likelihood using the 
 #              probability that the predicted class is k. 
 loss <- function(nn, input, k){
-  n <- nrow(input)
+  
+  n <- nrow(input) # number of input data
+  L <- length(nn$h) # the total number of layers in the network
   loss <- rep(0, n)
   
   for (i in 1:n){
+    
     inp <- input[i,]
     ki <- k[i]
     h <- forward(nn, inp)$h 
-    L <- length(h)              # the total number of layers in the network
     
     exp_L <- exp(h[[L]])    
     sum_L <- sum(exp_L)
@@ -245,13 +248,13 @@ predict_test <- function(nn, testset, test_k){
 
 classify <- function(nn, input){
   
-  n <- nrow(input)
-  predicted_k <- rep(0, n)
+  n <- nrow(input) # number of input data
+  L <- length(nn$h) # total number of layers in the network
+  predicted_k <- rep(0, n) # initilaise vector to store predicted class of data
   
   for (i in 1:n){
     inp <- input[i,]
     h <- forward(nn, inp)$h
-    L <- length(h)
     predicted_k[i] <- which.max(h[[L]])
   }
   
