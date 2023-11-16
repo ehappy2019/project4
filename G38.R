@@ -360,7 +360,7 @@ classify <- function(nn, input){
 # FUNCTION OUTPUT: the misclassification rate (a number between 0 and 1)
 # DESCRIPTION: This function calculates the misclassification rate of our 
 #              trained neural network. It compares the classes given in 
-#              'predicted_k' and 'actual_k' and returns the propoortion of
+#              'predicted_k' and 'actual_k' and returns the proportion of
 #              wrongly predicted classes.
 misclassified <- function(predicted_k, actual_k){
   length(which(predicted_k != actual_k))/length(actual_k)
