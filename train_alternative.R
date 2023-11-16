@@ -30,6 +30,7 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
         new_b[[l]] <- new_b[[l]] - eta*db[[l]]/mb
       }
     }
+    
     # update W and b in the network
     nn$W <- new_W ; nn$b <- new_b
   }

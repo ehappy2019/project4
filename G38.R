@@ -63,7 +63,7 @@
 # the proportion of misclassifications for a given test set.
 
 # We will use these functions to compare the results we get when testing our 
-# trained neural network and an untrained one using 'iris' data.
+# trained neural network and an untrained on 'iris' data.
 
 
 
@@ -206,22 +206,30 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
     # sampling mb random rows (input vectors) from the inp matrix
     indices <- sample(1:n, mb, replace=FALSE)
     
-    # optimize parameters for each of the random samples
+    # new lists will be updated to hold the optimized parameters until we 
+    # replace W and b in the network
+    new_W <- nn$W ; new_b <- nn$b
+    
+    # optimize parameters for each data of the random sample
     for (i in indices){
       x <- inp[i,]     # input vector for forward pass
       
       # for each input row, propagate through forwards and backwards 
       nn <- forward(nn,x)
       nn <- backward(nn,k[i])
-      W <- nn$W ; b <- nn$b ; dW <- nn$dW ; db <- nn$db
+      dW <- nn$dW ; db <- nn$db
       
-      # update parameter values for this optimization step 
+      # update new parameter values for this optimization step, dividing by mb 
+      # so that once we go through all mb data it will be like having updated W 
+      # and b by minus eta times the average of the dW's and db's respectively
       for (l in 1:(L-1)){
-        W[[l]] <- W[[l]] - eta*dW[[l]]
-        b[[l]] <- b[[l]] - eta*db[[l]]
+        new_W[[l]] <- new_W[[l]] - eta*dW[[l]]/mb
+        new_b[[l]] <- new_b[[l]] - eta*db[[l]]/mb
       }
-      nn$W <- W ; nn$b <- b
     }
+    
+    # update W and b in the network
+    nn$W <- new_W ; nn$b <- new_b
   }
   
   # return the trained network
@@ -309,7 +317,6 @@ set.seed(3)
 d <- c(4,8,7,3) # set up the network architecture
 nn <- netup(d)  # initialize weights and biases
 trained_nn <- train(nn, training_iris, training_k) # train the network
-
 
 # ---------------------------------------------------------------------------
 ### Now that we have trained the network, we will use it to classify the species
