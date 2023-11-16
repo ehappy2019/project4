@@ -37,7 +37,7 @@
 # derivatives of the loss w.r.t the layers of neurons (dh), the weights (dW) and 
 # the biases (db) according to the following formulas:
 # for a pair (x,k) and network returned by using h[[1]] = x:
-# dh[[L]][j] = exp(h[[L]][j])/sum(exp(h[[L]][i])) - diracdelta(k,j)
+# dh[[L]][j] = exp(h[[L]][j])/sum(exp(h[[L]][i])) - kronecker_delta(k,j)
 #   where the sum is over i = 1:length(h[[L]]), L is the output layer
 # for l < L :
 # d[[l+1]][j] = dh[[l+1]][j] if h[[l+1]][j] > 0 *OR* = 0 if h[[l+1]][j] <= 0
