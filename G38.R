@@ -5,23 +5,21 @@
 # CONTRIBUTIONS:
 # We worked collaboratively as a group on this assignment. Emily created the 
 # forward function, and all 3 of us collaborated creating the backward function.
-# The code for training and testing the data was written mainly by Alice and 
-# Emily. All 3 of us debugged and fine-tuned the code, and Anya finalised the 
-# comments and presentation. Proportions were more or less equal.
+# Alice did finite differencing testing. The code for training and testing the 
+# data was written mainly by Alice and Emily. All 3 of us debugged and 
+# fine-tuned the code, and Anya finalised the comments and presentation. 
+# Proportions were more or less equal.
 
 
 
 # This program creates a neural network from scratch. It is trained using the 
 # ReLU transform as the activation function, and the negative log-likelihood of 
-# the output probabilities as the loss function. In this case, it is used to 
-# classify data from the 'iris' dataset into species categories.
+# the output probabilities as the loss function. Stochastic gradient descent is 
+# used to optimise the parameters. In this case, we use it to classify data from
+# the 'iris' dataset into species categories.
 
-# The iris network has 4 layers with the numbers of neurons as 4-8-7-3. The 
-# input layer has 4 neurons corresponding to pieces of information about a 
-# single datum, and the output layer has 3 neurons, corresponding to the 3 
-# possible  species that the input datum may correspond to. 
-
-# Each layer has free parameters known as a weight (which is matrix) and a bias 
+# Each layer has a number of nodes and linking each layer, there are free 
+# parameters known as a weight (which is matrix) and a bias 
 # (which is a vector). These parameters are drawn from stochastic normal 
 # distributions at initialization of the network; the function 'netup' sets up 
 # the network by creating the neuron layers, weight matrices and bias vectors 
@@ -32,25 +30,32 @@
 # the values of the neurons in the following layer l+1: 
 # h^{l+1} = max(0, W^l * h^l + b^l). 
 # This works recursively until we reach the final layer, where the values of the 
-# 3 neurons indicate probabilities that the input datum is each of the 3 
-# possible species. 
+# neurons indicate probabilities that the input datum is each of the possible 
+# classes. 
 # The function 'forward' does this, while the function 'backward' exercises 
 # back-propagation to calculate the derivatives of the loss w.r.t the layers of 
-# neurons, the weights and the biases. 
+# neurons, the weights and the biases according to the followinf formulas:
+#### maybe add formulas here?
 # We train the network in the function 'train' by doing this forward and 
-# backward propagation nstep=10000 times for mb=10 pieces of test data.
+# backward propagation nstep times for mb pieces of test data.
 # (nstep and mb are given default values 10000 and 10) . This is the process 
 # that optimises the network's predictions by fine-tuning the weights and biases 
 # in the network using the derivatives of the loss,in order to minimise the loss 
 # function. 
-
+##### could add formulas and mention eta step size here
 
 # The function 'loss' calculates the loss function for a given network (either
-# trained or not trained), the function 'classify' returns a list of species
+# trained or not trained), the function 'classify' returns a list of predicted
 # classifications for a given test set of data, and 'misclassification' measures
 # the proportion of misclassifications for a given test set.
+
 # We will use these functions to compare the results we get when testing our 
 # trained neural network and an untrained one using 'iris' data.
+
+# The iris network has 4 layers with the numbers of neurons as 4-8-7-3. The 
+# input layer has 4 neurons corresponding to pieces of information about a 
+# single datum, and the output layer has 3 neurons, corresponding to the 3 
+# possible  species that the input datum may correspond to.
 
 
 
