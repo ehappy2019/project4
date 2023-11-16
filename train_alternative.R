@@ -9,7 +9,8 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
     # sampling mb random rows (input vectors) from the inp matrix
     indices <- sample(1:n, mb, replace=FALSE)
     
-    # new vectors will be updated to hold the optimized parameters
+    # new lists will be updated to hold the optimized parameters until we 
+    # replace W and b in the network
     new_W <- nn$W ; new_b <- nn$b
     
     # optimize parameters for each data of the random sample
@@ -21,9 +22,9 @@ train <- function(nn, inp, k, eta=0.01, mb=10, nstep=10000){
       nn <- backward(nn,k[i])
       dW <- nn$dW ; db <- nn$db
       
-      # update parameter values for this optimization step, dividing by mb so 
-      # that once we go through all mb data it will be like having updated W by
-      # the average of the dW's and db's
+      # update new parameter values for this optimization step, dividing by mb 
+      # so that once we go through all mb data it will be like having updated W 
+      # and b by minus eta times the average of the dW's and db's respectively
       for (l in 1:(L-1)){
         new_W[[l]] <- new_W[[l]] - eta*dW[[l]]/mb
         new_b[[l]] <- new_b[[l]] - eta*db[[l]]/mb

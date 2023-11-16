@@ -18,31 +18,44 @@
 # used to optimise the parameters. In this case, we use it to classify data from
 # the 'iris' dataset into species categories.
 
-# Each layer has a number of nodes and linking each layer, there are free 
-# parameters known as a weight (which is matrix) and a bias 
+# Each layer of the network has a number of nodes and linking each layer, there 
+# are free parameters known as a weight 'W' (which is matrix) and a bias 'b'
 # (which is a vector). These parameters are drawn from stochastic normal 
 # distributions at initialization of the network; the function 'netup' sets up 
 # the network by creating the neuron layers, weight matrices and bias vectors 
 # with the right dimensions. 
-# To propagate a signal through the network, a linear transformation 
-# is performed using the values of each neuron in layer l with the relevant 
-# weight and biases. The ReLU activation is then calculated, which determines 
-# the values of the neurons in the following layer l+1: 
-# h^{l+1} = max(0, W^l * h^l + b^l). 
-# This works recursively until we reach the final layer, where the values of the 
-# neurons indicate probabilities that the input datum is each of the possible 
-# classes. 
-# The function 'forward' does this, while the function 'backward' exercises 
-# back-propagation to calculate the derivatives of the loss w.r.t the layers of 
-# neurons, the weights and the biases according to the followinf formulas:
-#### maybe add formulas here?
+
+# The function 'forward' simulates the propagation of input data through the 
+# network: a linear transformation is performed using the values of each neuron 
+# in layer l with the relevant weights and biases, the ReLU activation is then 
+# calculated, which determines the values of the neurons in the following layer 
+# l+1:  h[[l+1]] = max(0, W[[l]] %*% h[[l]] + b[[l]]). This works recursively 
+# until we reach the final layer, where the values of the neurons indicate 
+# probabilities that the input datum is each of the possible classes. 
+
+# The function 'backward' exercises back-propagation to calculate the 
+# derivatives of the loss w.r.t the layers of neurons (dh), the weights (dW) and 
+# the biases (db) according to the following formulas:
+# for a pair (x,k) and network returned by using h[[1]] = x:
+# dh[[L]][j] = exp(h[[L]][j])/sum(exp(h[[L]][i])) - diracdelta(k,j)
+#   where the sum is over i = 1:length(h[[L]]), L is the output layer
+# for l < L :
+# d[[l+1]][j] = dh[[l+1]][j] if h[[l+1]][j] > 0 *OR* = 0 if h[[l+1]][j] <= 0
+# dh[[l]] = W[[l]]^T %*% d[[l+1]]
+# db[[l]] = d[[l+1]]
+# dW[[l]] = d[[l+1]] %*% h[[l]]^T
+
 # We train the network in the function 'train' by doing this forward and 
-# backward propagation nstep times for mb pieces of test data.
-# (nstep and mb are given default values 10000 and 10) . This is the process 
-# that optimises the network's predictions by fine-tuning the weights and biases 
-# in the network using the derivatives of the loss,in order to minimise the loss 
-# function. 
-##### could add formulas and mention eta step size here
+# backward propagation nstep times for mb pieces of test data each time (nstep 
+# and mb are given default values 10000 and 10 respectively) . This is the 
+# process that optimises the network's predictions by fine-tuning the weights 
+# and biases at each step by using the derivatives of the loss, in order to 
+# minimise the loss function. 
+# The weights and biases are updated at each step as so :
+# W[[l]] <- W[[l]] - eta*dW[[l]]
+# b[[l]] <- b[[l]] - eta*db[[l]]
+# where eta is the stepsize and db, dW are the average derivatives for the mb 
+# randomly sampled data inputs used in one step.
 
 # The function 'loss' calculates the loss function for a given network (either
 # trained or not trained), the function 'classify' returns a list of predicted
@@ -51,11 +64,6 @@
 
 # We will use these functions to compare the results we get when testing our 
 # trained neural network and an untrained one using 'iris' data.
-
-# The iris network has 4 layers with the numbers of neurons as 4-8-7-3. The 
-# input layer has 4 neurons corresponding to pieces of information about a 
-# single datum, and the output layer has 3 neurons, corresponding to the 3 
-# possible  species that the input datum may correspond to.
 
 
 
@@ -260,8 +268,13 @@ loss <- function(nn, input, k){
 
 
 # ---------------------------------------------------------------------------
-### Here we train a 4-8-7-3 network to classify species of irises to species 
-### based on the 4 characteristics given in the iris data set.
+### Here we train a network to classify irises to species based on the 4 
+### characteristics given in the iris data set.
+
+# The iris network has 4 layers with the numbers of neurons as 4-8-7-3. The 
+# input layer has 4 neurons corresponding to pieces of information about a 
+# single datum, and the output layer has 3 neurons, corresponding to the 3 
+# possible  species that the input datum may correspond to.
 
 
 # load the 'iris' data set
